@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ESP32 Camera</title>
+</head>
+<body>
+    <h2>ESP32 Camera</h2>
+    <p>IP Address: <span id="ipAddress"></span></p>
+    <!-- New battery display element -->
+    <p>Battery: <span id="battery">Loading...</span></p>
+    <button onclick="captureImage()">Capture</button>
+    <br><br>
+    <img id="capturedImage" src="" alt="Captured Image">
+    <script>
+        function captureImage() {
+            fetch('/capture')
+                .then(response => response.blob())
+                .then(blob => {
+                    document.getElementById('capturedImage').src = URL.createObjectURL(blob);
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function fetchIPAddress() {
+            fetch('/ip')
+                .then(response => response.text())
+                .then(ip => {
+                    document.getElementById('ipAddress').innerText = ip;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Function to update battery status
+        function updateBatteryStatus(battery) {
+            var level = battery.level * 100;
+            document.getElementById('battery').innerText = level.toFixed(0) + '%';
+        }
+
+        // Get battery information if supported
+        if(navigator.getBattery) {
+            navigator.getBattery().then(function(battery) {
+                updateBatteryStatus(battery);
+                battery.addEventListener('levelchange', function() {
+                    updateBatteryStatus(battery);
+                });
+            });
+        } else {
+            document.getElementById('battery').innerText = 'Battery API not supported';
+        }
+
+        window.onload = fetchIPAddress;
+    </script>
+</body>
+</html>
