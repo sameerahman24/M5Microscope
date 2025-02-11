@@ -2,7 +2,7 @@
 #include "camera.h"
 #include <esp_camera.h>
 
-// M5Stack Timer CAM pin configuration (adapt as needed):
+// Camera configuration
 camera_config_t config = {
     .pin_pwdn = -1,        // Not used on M5Stack Timer CAM
     .pin_reset = 15,       // RESET pin
@@ -25,9 +25,9 @@ camera_config_t config = {
     .ledc_timer = LEDC_TIMER_0,
     .ledc_channel = LEDC_CHANNEL_0,
     .pixel_format = PIXFORMAT_JPEG, 
-    .frame_size = FRAMESIZE_XGA,  // Try VGA (1024×768) or something smaller first
-    .jpeg_quality = 10,           // Adjust as needed
-    .fb_count = 2,               // Use 1 for most boards
+    .frame_size = FRAMESIZE_XGA, 
+    .jpeg_quality = 10,           
+    .fb_count = 2,               
     .grab_mode = CAMERA_GRAB_LATEST               
 };
 

@@ -5,6 +5,7 @@
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include "secrets.h"
+#include "M5TimerCAM.h"
 
 #define LED_BUILTIN 2
 
@@ -25,9 +26,13 @@ void handleIP(AsyncWebServerRequest *request) {
     request->send(200, "text/plain", ip);
 }
 
+void handleBattery(AsyncWebServerRequest *request) {
+    int batteryLevel = TimerCAM.Power.getBatteryLevel(); 
+    request->send(200, "text/plain", String(batteryLevel));
+}
+
 void initWebServer() {
     pinMode(LED_BUILTIN, OUTPUT);
-
     // Initialize SPIFFS
     if (!SPIFFS.begin(true)) {
         Serial.println("SPIFFS error");
@@ -42,7 +47,7 @@ void initWebServer() {
     Serial.print("Access Point IP: ");
     Serial.println(IP);
 
-    // Set up your routes
+    // Set up routes
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
         if (SPIFFS.exists("/index.html")) {
             request->send(SPIFFS, "/index.html", "text/html");
@@ -53,6 +58,7 @@ void initWebServer() {
 
     server.on("/capture", HTTP_GET, handleCapture);
     server.on("/ip", HTTP_GET, handleIP);
+    server.on("/battery", HTTP_GET, handleBattery);
 
     server.begin();
     Serial.println("Web server started in AP mode");

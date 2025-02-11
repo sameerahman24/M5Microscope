@@ -9,6 +9,7 @@ extern const char* password;
 
 void handleCapture(AsyncWebServerRequest *request);
 void handleIP(AsyncWebServerRequest *request);
+void handleBattery(AsyncWebServerRequest *request);
 void initWebServer();
 
 #endif // WEB_SERVER_H

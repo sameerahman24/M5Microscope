@@ -3,10 +3,19 @@
 #include <SPIFFS.h>
 #include "camera.h"
 #include "web_server.h"
+#include "M5TimerCAM.h"
+
+const int LED_PIN = 2;  // LED indicator pin
 
 void setup() {
     Serial.begin(115200);
     Serial.println("Starting setup...");
+
+    TimerCAM.begin(true);
+
+    // Initialize LED indicator
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN, HIGH);  // Turn on LED to indicate power
 
     Serial.println("Mounting SPIFFS...");
     if (!SPIFFS.begin(true)) {
@@ -30,5 +39,7 @@ void setup() {
 }
 
 void loop() {
-    // Your code here, if needed
+    digitalWrite(LED_PIN, HIGH);
+    delay(1000);
+    
 }
