@@ -1,18 +1,23 @@
 #include "web_server.h"
 #include <WiFi.h>
-#include <esp_camera.h>
 #include <SPIFFS.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include "secrets.h"
 #include "M5TimerCAM.h"
+#include "power.h"
+#include "camera.h"
 
 #define LED_BUILTIN 2
 
 AsyncWebServer server(80);
 
 void handleCapture(AsyncWebServerRequest *request) {
-    camera_fb_t * fb = esp_camera_fb_get();
+   
+    updateCaptureTime();
+
+    // Capture image using camera.cpp function
+    camera_fb_t *fb = captureImage();
     if (!fb) {
         request->send(500, "text/plain", "Camera capture failed");
         return;
