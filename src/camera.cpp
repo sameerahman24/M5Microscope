@@ -47,22 +47,22 @@ camera_fb_t* captureImage() {
     }
     return fb;
 }
-void adjustCameraSettings(int exposure_value) {
+void adjustCameraSettings(int exposure_value, int gain_value) {
     sensor_t *s = esp_camera_sensor_get();
     if (s) {
         s->set_brightness(s, 0);     // Range: -2 to 2
         s->set_contrast(s, 0);       // Range: -2 to 2
         s->set_saturation(s, 0);     // Range: -2 to 2
-        s->set_special_effect(s, 0); // Range: 0-6 (0 = No Effect, 1 = Negative, etc.)
+        s->set_special_effect(s, 0); // Range: 0-6 (0 = No Effect, 1 = Negative)
         s->set_whitebal(s, 0);       // 0 = disabled, 1 = enabled
         s->set_awb_gain(s, 1);       // 0 = disabled, 1 = enabled
-        s->set_wb_mode(s, 0);        // Range: 0-4 (if AWB gain enabled: 0 = Auto, 1 = Sunny, etc.)
+        s->set_wb_mode(s, 0);        // Range: 0-4 (if AWB gain enabled: 0 = Auto, 1 )
         s->set_exposure_ctrl(s, 0);  // 0 = disable, 1 = enable
         s->set_aec2(s, 0);           // 0 = disable, 1 = enable
         s->set_ae_level(s, 0);       // Range: -2 to 2
         s->set_aec_value(s, exposure_value);  // Range: 0 to 1200
-        s->set_gain_ctrl(s, 1);      // 0 = disable, 1 = enable
-        s->set_agc_gain(s, 0);       // Range: 0 to 30
+        s->set_gain_ctrl(s, 0);      // 0 = disable, 1 = enable
+        s->set_agc_gain(s, gain_value);       // Range: 0 to 30
         s->set_gainceiling(s, (gainceiling_t)0);  // Range: 0 to 6
         s->set_bpc(s, 0);            // 0 = disable, 1 = enable
         s->set_wpc(s, 1);            // 0 = disable, 1 = enable

@@ -36,6 +36,27 @@ void handleBattery(AsyncWebServerRequest *request) {
     request->send(200, "text/plain", String(batteryLevel));
 }
 
+void handleSettings(AsyncWebServerRequest *request) {
+    if (request->hasParam("exposure") && request->hasParam("gain")) {
+        int exposure = request->getParam("exposure")->value().toInt();
+        int gain = request->getParam("gain")->value().toInt();
+        adjustCameraSettings(exposure, gain);
+        request->send(200, "text/plain", "Settings updated");
+    } else {
+        request->send(400, "text/plain", "Missing parameters");
+    }
+}
+
+void handleTimer(AsyncWebServerRequest *request) {
+    unsigned long remaining = getRemainingTime();
+    request->send(200, "text/plain", String(remaining));
+}
+
+void handleSleep(AsyncWebServerRequest *request) {
+    request->send(200, "text/plain", "Going to sleep...");
+    delay(100);  // Allow the response to be sent
+    esp_deep_sleep_start();
+}
 void initWebServer() {
     pinMode(LED_BUILTIN, OUTPUT);
     // Initialize SPIFFS
@@ -64,6 +85,9 @@ void initWebServer() {
     server.on("/capture", HTTP_GET, handleCapture);
     server.on("/ip", HTTP_GET, handleIP);
     server.on("/battery", HTTP_GET, handleBattery);
+    server.on("/settings", HTTP_GET, handleSettings);
+    server.on("/sleep", HTTP_GET, handleSleep);
+    server.on("/timer", HTTP_GET, handleTimer);
 
     server.begin();
     Serial.println("Web server started in AP mode");

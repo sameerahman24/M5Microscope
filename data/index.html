@@ -1,3 +1,12 @@
+/* ESP32 Camera Web Interface
+ * Provides a user-friendly frontend for controlling the ESP32-CAM
+ * Features:
+ * - Live camera feed and image capture
+ * - Device status monitoring (IP, battery, sleep timer)
+ * - Camera settings adjustment
+ * - Power management controls
+ */
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -5,14 +14,41 @@
   <title>ESP32 Camera</title>
 </head>
 <body>
+  <!-- Device Status Section -->
   <h2>ESP32 Camera</h2>
   <p>IP Address: <span id="ipAddress">Loading...</span></p>
   <p>Battery Level: <span id="battery">Loading...</span></p>
+  <p>Time until shutdown: <span id="timer">Loading...</span> seconds</p>
+  
+  <!-- Camera Control Section -->
   <button onclick="captureImage()">Capture</button>
-  <sli
   <br><br>
   <img id="capturedImage" src="" alt="Captured Image">
+  <hr>
+  
+  <!-- Camera Settings Section -->
+  <h3>Camera Settings</h3>
+  <p>
+    <!-- Exposure control: 0-1200 range matches camera hardware capabilities -->
+    Exposure Value: <input type="range" id="exposureSlider" min="0" max="1200" value="600" 
+      oninput="document.getElementById('exposureValue').innerText=this.value">
+    <span id="exposureValue">600</span>
+  </p>
+  <p>
+    <!-- Gain control: 0-30 range matches camera hardware capabilities -->
+    Gain Value: <input type="range" id="gainSlider" min="0" max="30" value="0" 
+      oninput="document.getElementById('gainValue').innerText=this.value">
+    <span id="gainValue">0</span>
+  </p>
+  <button onclick="updateSettings()">Update Camera Settings</button>
+  <br><br>
+  
+  <!-- Power Control Section -->
+  <button onclick="goToSleep()">Sleep</button>
+
   <script>
+    // Image capture function
+    // Fetches JPEG from /capture endpoint and displays in image element
     function captureImage() {
       fetch('/capture')
         .then(response => response.blob())
@@ -22,6 +58,7 @@
         .catch(error => console.error('Capture error:', error));
     }
 
+    // Fetch and display device IP address
     function fetchIPAddress() {
       fetch('/ip')
         .then(response => response.text())
@@ -29,6 +66,7 @@
         .catch(error => console.error('IP error:', error));
     }
 
+    // Fetch and display battery level
     function getBatteryLevel() {
       fetch('/battery')
         .then(response => response.text())
@@ -38,12 +76,42 @@
         .catch(error => console.error('Battery level error:', error));
     }
 
-    // Ensure data gets fetched on page load
+    // Update camera exposure and gain settings
+    function updateSettings() {
+      const exposure = document.getElementById('exposureSlider').value;
+      const gain = document.getElementById('gainSlider').value;
+      fetch(`/settings?exposure=${exposure}&gain=${gain}`)
+        .then(response => response.text())
+        .then(message => alert(message))
+        .catch(error => console.error('Settings update error:', error));
+    }
+
+    // Fetch and display time remaining before sleep
+    function fetchTimer() {
+      fetch('/timer')
+        .then(response => response.text())
+        .then(seconds => {
+          document.getElementById('timer').innerText = seconds;
+        })
+        .catch(error => console.error('Timer error:', error));
+    }
+
+    // Trigger device sleep mode
+    function goToSleep() {
+      fetch('/sleep')
+        .then(response => response.text())
+        .then(message => alert(message))
+        .catch(error => console.error('Sleep error:', error));
+    }
+
+    // Initialize page data
     fetchIPAddress();
     getBatteryLevel();
+    fetchTimer();
 
-    // Optionally update battery every 30 seconds
-    setInterval(getBatteryLevel, 30000);
+    // Periodic updates
+    setInterval(getBatteryLevel, 30000);  // Update battery every 30 seconds
+    setInterval(fetchTimer, 1000);        // Update timer every second
   </script>
 </body>
 </html>
