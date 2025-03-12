@@ -6,6 +6,8 @@
 #define POWER_BUTTON_PIN 38
 
 
+#define DEVICE_LED 2
+
 void updateCaptureTime();
 
 

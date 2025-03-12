@@ -1,54 +1,190 @@
-/* ESP32 Camera Web Interface
- * Provides a user-friendly frontend for controlling the ESP32-CAM
- * Features:
- * - Live camera feed and image capture
- * - Device status monitoring (IP, battery, sleep timer)
- * - Camera settings adjustment
- * - Power management controls
- */
-
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>ESP32 Camera</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>M5Cam Microscope</title>
+  <style>
+    /* Base styles */
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    
+    body {
+      margin: 0;
+      padding: 15px;
+      background-color: #f5f5f5;
+      color: #333;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    h2, h3 {
+      color: #2c3e50;
+    }
+    
+    /* Container for main content */
+    .container {
+      width: 100%;
+      padding: 10px;
+    }
+    
+    /* Status panel */
+    .status-panel {
+      background-color: #fff;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    /* Image container */
+    .image-container {
+      width: 100%;
+      text-align: center;
+      margin: 20px 0;
+    }
+    
+    #capturedImage {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    /* Controls */
+    .control-panel {
+      background-color: #fff;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    /* Buttons */
+    button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      margin: 10px 5px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+      min-width: 120px;
+    }
+    
+    button:hover {
+      background-color: #2980b9;
+    }
+    
+    button.danger {
+      background-color: #e74c3c;
+    }
+    
+    button.danger:hover {
+      background-color: #c0392b;
+    }
+    
+    /* Sliders */
+    .slider-container {
+      margin: 15px 0;
+    }
+    
+    .slider-container p {
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+    
+    input[type="range"] {
+      width: 100%;
+      height: 25px;
+      -webkit-appearance: none;
+      background: #ddd;
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #3498db;
+      cursor: pointer;
+    }
+    
+    /* Responsive design - Tablets */
+    @media (min-width: 600px) {
+      .controls-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+      }
+    }
+    
+    /* Responsive design - Desktops */
+    @media (min-width: 900px) {
+      .main-grid {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 20px;
+      }
+      
+      .image-container {
+        grid-column: 2;
+        grid-row: span 2;
+      }
+    }
+  </style>
 </head>
 <body>
-  <!-- Device Status Section -->
-  <h2>ESP32 Camera</h2>
-  <p>IP Address: <span id="ipAddress">Loading...</span></p>
-  <p>Battery Level: <span id="battery">Loading...</span></p>
-  <p>Time until shutdown: <span id="timer">Loading...</span> seconds</p>
-  
-  <!-- Camera Control Section -->
-  <button onclick="captureImage()">Capture</button>
-  <br><br>
-  <img id="capturedImage" src="" alt="Captured Image">
-  <hr>
-  
-  <!-- Camera Settings Section -->
-  <h3>Camera Settings</h3>
-  <p>
-    <!-- Exposure control: 0-1200 range matches camera hardware capabilities -->
-    Exposure Value: <input type="range" id="exposureSlider" min="0" max="1200" value="600" 
-      oninput="document.getElementById('exposureValue').innerText=this.value">
-    <span id="exposureValue">600</span>
-  </p>
-  <p>
-    <!-- Gain control: 0-30 range matches camera hardware capabilities -->
-    Gain Value: <input type="range" id="gainSlider" min="0" max="30" value="0" 
-      oninput="document.getElementById('gainValue').innerText=this.value">
-    <span id="gainValue">0</span>
-  </p>
-  <button onclick="updateSettings()">Update Camera Settings</button>
-  <br><br>
-  
-  <!-- Power Control Section -->
-  <button onclick="goToSleep()">Sleep</button>
+  <div class="container">
+    <h2>M5Cam Microscope</h2>
+    
+    <div class="main-grid">
+      <!-- Status Panel -->
+      <div class="status-panel">
+        <p>IP Address: <span id="ipAddress">Loading...</span></p>
+        <p>Battery Level: <span id="battery">Loading...</span></p>
+        <p>Time until shutdown: <span id="timer">Loading...</span> seconds</p>
+        
+        <button class="danger" onclick="goToSleep()">Sleep</button>
+      </div>
+      
+      <!-- Image Container -->
+      <div class="image-container">
+        <img id="capturedImage" src="" alt="Captured Image">
+        <div>
+          <button onclick="captureImage()">Capture</button>
+        </div>
+      </div>
+      
+      <!-- Controls Panel -->
+      <div class="control-panel">
+        <h3>Camera Settings</h3>
+        
+        <div class="slider-container">
+          <p>Exposure Value: <span id="exposureValue">600</span></p>
+          <input type="range" id="exposureSlider" min="0" max="1200" value="600" 
+            oninput="document.getElementById('exposureValue').innerText=this.value">
+        </div>
+        
+        <div class="slider-container">
+          <p>Gain Value: <span id="gainValue">0</span></p>
+          <input type="range" id="gainSlider" min="0" max="30" value="0" 
+            oninput="document.getElementById('gainValue').innerText=this.value">
+        </div>
+        
+        <button onclick="updateSettings()">Update Settings</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     // Image capture function
-    // Fetches JPEG from /capture endpoint and displays in image element
     function captureImage() {
       fetch('/capture')
         .then(response => response.blob())

@@ -6,17 +6,18 @@
 #include "M5TimerCAM.h"
 #include "power.h"  
 
-const int LED_PIN = 2;
+
 void setup() {
     Serial.begin(115200);
     Serial.println("Starting setup...");
 
     TimerCAM.begin(true);
 
-
     // Initialize LED indicator.
-    pinMode(LED_PIN, OUTPUT);
-    digitalWrite(LED_PIN, HIGH);
+    pinMode(BUILTIN_LED, OUTPUT);
+    digitalWrite(BUILTIN_LED, HIGH);
+
+    
 
     Serial.println("Mounting SPIFFS...");
     if (!SPIFFS.begin(true)) {
@@ -40,7 +41,7 @@ void setup() {
 }
 
 void loop() {
-    digitalWrite(LED_PIN, HIGH);
+    updateLED();
     checkInactivity(); 
     delay(100);      
 }

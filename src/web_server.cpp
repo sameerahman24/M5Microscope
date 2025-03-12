@@ -8,22 +8,29 @@
 #include "power.h"
 #include "camera.h"
 
-#define LED_BUILTIN 2
+
 
 AsyncWebServer server(80);
 
 void handleCapture(AsyncWebServerRequest *request) {
-   
-    updateCaptureTime();
+    // Flash LED to indicate capture
+    digitalWrite(EXT_LED_PIN, HIGH);
+    ledActive = true;
+    ledTurnOffTime = millis() + EXT_LED_FLASH_DURATION;
 
-    // Capture image using camera.cpp function
+    updateCaptureTime();    
+
+    // Capture image using camera.cpp function - now runs in separate task
     camera_fb_t *fb = captureImage();
     if (!fb) {
         request->send(500, "text/plain", "Camera capture failed");
         return;
     }
+    
+    // Send the response with the image
     request->send(200, "image/jpeg", fb->buf, fb->len);
-    esp_camera_fb_return(fb);
+    
+    
 }
 
 void handleIP(AsyncWebServerRequest *request) {
@@ -58,7 +65,9 @@ void handleSleep(AsyncWebServerRequest *request) {
     esp_deep_sleep_start();
 }
 void initWebServer() {
-    pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(EXT_LED_PIN, OUTPUT);
+    digitalWrite(EXT_LED_PIN, LOW);
+
     // Initialize SPIFFS
     if (!SPIFFS.begin(true)) {
         Serial.println("SPIFFS error");

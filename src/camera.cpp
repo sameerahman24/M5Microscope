@@ -2,6 +2,52 @@
 #include "camera.h"
 #include <esp_camera.h>
 
+// Variables for LED control
+unsigned long ledTurnOffTime = 0;
+bool ledActive = false;
+
+// Variables for task-based camera capture
+TaskHandle_t cameraTaskHandle = NULL;
+SemaphoreHandle_t frameReadySemaphore = NULL;
+camera_fb_t *capturedFrame = NULL;
+bool captureRequested = false;
+bool captureInProgress = false;
+
+// Camera task function - runs on a separate core
+void cameraTask(void *parameter) {
+    while(true) {
+        if (captureRequested && !captureInProgress) {
+            captureInProgress = true;
+            
+            // Release previous frame if it exists
+            if (capturedFrame) {
+                esp_camera_fb_return(capturedFrame);
+                capturedFrame = NULL;
+            }
+            
+            // Force cleanup of any previous frames that might be in memory
+            esp_camera_fb_return(NULL);
+            
+            // Small delay to let camera stabilize
+            vTaskDelay(30 / portTICK_PERIOD_MS);
+            
+            // Capture new frame
+            capturedFrame = esp_camera_fb_get();
+            
+            // Signal that capture is complete
+            captureRequested = false;
+            captureInProgress = false;
+            
+            if (capturedFrame) {
+                xSemaphoreGive(frameReadySemaphore);
+            }
+        }
+        
+        // Small delay to prevent task from hogging CPU
+        vTaskDelay(5 / portTICK_PERIOD_MS);
+    }
+}
+
 // Camera configuration
 camera_config_t config = {
     .pin_pwdn = -1,        // Not used on M5Stack Timer CAM
@@ -21,13 +67,13 @@ camera_config_t config = {
     .pin_href = 26,        // HREF pin
     .pin_pclk = 21,        // PCLK pin
 
-    .xclk_freq_hz = 8000000, 
+    .xclk_freq_hz = 20000000, 
     .ledc_timer = LEDC_TIMER_0,
     .ledc_channel = LEDC_CHANNEL_0,
     .pixel_format = PIXFORMAT_JPEG, 
-    .frame_size = FRAMESIZE_SVGA, 
-    .jpeg_quality = 10,           
-    .fb_count = 2,              
+    .frame_size = FRAMESIZE_UXGA, 
+    .jpeg_quality = 3,           
+    .fb_count = 1,              
     .grab_mode = CAMERA_GRAB_LATEST               
 };
 
@@ -37,16 +83,53 @@ bool initCamera() {
         Serial.printf("Camera init failed with error 0x%x\n", err);
         return false;
     }
+    
+    // Create semaphore for synchronization
+    frameReadySemaphore = xSemaphoreCreateBinary();
+    
+    // Create camera task on core 0 
+    xTaskCreatePinnedToCore(
+        cameraTask,         // Task function
+        "CameraTask",       // Name
+        4096,              // Stack size
+        NULL,              // Parameters
+        1,                 // Priority
+        &cameraTaskHandle, // Task handle
+        0                  // Core (0 or 1)
+    );
+    
     return true;
 }
 
-camera_fb_t* captureImage() {
-    camera_fb_t *fb = esp_camera_fb_get();
-    if (!fb) {
-        Serial.println("DEBUG: Camera capture failed.");
-    }
-    return fb;
+// Request a new capture 
+void requestCapture() {
+    captureRequested = true;
 }
+
+// Get the captured frame (may be NULL if not ready)
+camera_fb_t* getLatestFrame() {
+    return capturedFrame;
+}
+
+// Wait for a new frame with timeout
+camera_fb_t* captureImage() {
+    // Clear any existing semaphore signals first
+    while (xSemaphoreTake(frameReadySemaphore, 0) == pdTRUE) {
+        // Drain any existing signals
+    }
+    
+    // Request a new capture
+    requestCapture();
+    
+    // Wait for capture to complete (with 700ms timeout)
+    if (xSemaphoreTake(frameReadySemaphore, pdMS_TO_TICKS(700)) == pdTRUE) {
+        return capturedFrame;
+    }
+    
+    Serial.println("DEBUG: Camera capture timeout.");
+    return NULL;
+}
+
 void adjustCameraSettings(int exposure_value, int gain_value) {
     sensor_t *s = esp_camera_sensor_get();
     if (s) {
@@ -54,7 +137,7 @@ void adjustCameraSettings(int exposure_value, int gain_value) {
         s->set_contrast(s, 0);       // Range: -2 to 2
         s->set_saturation(s, 0);     // Range: -2 to 2
         s->set_special_effect(s, 0); // Range: 0-6 (0 = No Effect, 1 = Negative)
-        s->set_whitebal(s, 0);       // 0 = disabled, 1 = enabled
+        s->set_whitebal(s, 1);       // 0 = disabled, 1 = enabled
         s->set_awb_gain(s, 1);       // 0 = disabled, 1 = enabled
         s->set_wb_mode(s, 0);        // Range: 0-4 (if AWB gain enabled: 0 = Auto, 1 )
         s->set_exposure_ctrl(s, 0);  // 0 = disable, 1 = enable
@@ -74,5 +157,12 @@ void adjustCameraSettings(int exposure_value, int gain_value) {
         s->set_colorbar(s, 0);       // 0 = disable, 1 = enable
     } else {
         Serial.println("DEBUG: Unable to get sensor pointer for adjusting settings.");
+    }
+}
+
+void updateLED() {
+    if (ledActive && (millis() >= ledTurnOffTime)) {
+        digitalWrite(EXT_LED_PIN, LOW);
+        ledActive = false;
     }
 }
