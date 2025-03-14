@@ -3,9 +3,10 @@
 **M5Microscope** transforms the M5TimerCam into a digital microscope by coupling it with an external microscope lens. Once configured, the device creates its own WiFi access point so you can instantly view a live microscope feed by connecting to [http://192.168.4.1/](http://192.168.4.1/).
 
 ## Demo
-<img width="1341" alt="Screenshot 2025-02-23 at 1 10 50 PM" src="https://github.com/user-attachments/assets/a30c6318-fe22-45c4-95af-a684ab7c0e9f" />
-<img width="1339" alt="Screenshot 2025-02-23 at 1 12 33 PM" src="https://github.com/user-attachments/assets/d4fe29a5-94b7-4959-824f-61d3c3cf3872" />
-<img width="1338" alt="Screenshot 2025-02-23 at 1 12 59 PM" src="https://github.com/user-attachments/assets/d8f7d7a6-0611-42f5-a93c-2069c09fc1d0" />
+<img src="https://i.ibb.co/prsz32LM/IMG-9326.png" alt="IMG-9326" border="0">
+<img src="https://i.ibb.co/N6jNQpyQ/IMG-9325.png" alt="IMG-9325" border="0">
+<img src="https://i.ibb.co/FbsbsqL0/IMG-9323.png" alt="IMG-9323" border="0">
+<img src="https://i.ibb.co/n8RWp50p/IMG-9324.png" alt="IMG-9324" border="0">
 
 ## Overview
 
@@ -73,3 +74,4 @@ This project leverages the M5TimerCam and an external microscope lens to create 
 
 - Special thanks to all contributors and open-source projects that provided inspiration and components for the M5Microscope, especially [Timer-CAM Library
 ](https://github.com/m5stack/TimerCam-arduino)
+
