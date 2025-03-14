@@ -3,10 +3,14 @@
 **M5Microscope** transforms the M5TimerCam into a digital microscope by coupling it with an external microscope lens. Once configured, the device creates its own WiFi access point so you can instantly view a live microscope feed by connecting to [http://192.168.4.1/](http://192.168.4.1/).
 
 ## Demo
-<img src="https://i.ibb.co/FbsbsqL0/IMG-9323.png" alt="IMG-9323" width="300">
-<img src="https://i.ibb.co/n8RWp50p/IMG-9324.png" alt="IMG-9324" width="300">
-<img src="https://i.ibb.co/N6jNQpyQ/IMG-9325.png" alt="IMG-9325" width="300">
-<img src="https://i.ibb.co/prsz32LM/IMG-9326.png" alt="IMG-9326" width="300">
+<div>
+  <img src="https://i.ibb.co/FbsbsqL0/IMG-9323.png" alt="IMG-9323" width="300">
+  <img src="https://i.ibb.co/n8RWp50p/IMG-9324.png" alt="IMG-9324" width="300">
+</div>
+<div>
+  <img src="https://i.ibb.co/N6jNQpyQ/IMG-9325.png" alt="IMG-9325" width="300">
+  <img src="https://i.ibb.co/prsz32LM/IMG-9326.png" alt="IMG-9326" width="300">
+</div>
 
 
 ## Overview
